@@ -87,3 +87,10 @@ body {
 #next-btn:hover {
   background-color: rgb(174, 169, 169);
 }
+
+#prev-btn:active,
+#next-btn:active {
+  color: white;
+  background-color: rgb(57, 47, 47);
+  transition: none;
+}
