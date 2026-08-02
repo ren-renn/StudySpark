@@ -6,6 +6,7 @@
 
 body {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -93,4 +94,14 @@ body {
   color: white;
   background-color: rgb(57, 47, 47);
   transition: none;
+}
+
+.card-form-container {
+  margin-top: 18px;
+}
+
+#card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
