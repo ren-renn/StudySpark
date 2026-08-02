@@ -41,15 +41,35 @@ const nextButton = document.querySelector("#next-btn");
 nextButton.addEventListener("click", () => {
   if (currIndex < flashCards.length - 1) {
     currIndex++;
+    updateCardUI();
   }
-
-  updateCardUI();
 });
 
 prevButton.addEventListener("click", () => {
   if (currIndex > 0) {
     currIndex--;
+    updateCardUI();
   }
+});
+
+const cardForm = document.querySelector("#card-form");
+const userQuestion = document.querySelector("#user-question");
+const userAnswer = document.querySelector("#user-answer");
+
+cardForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const questionInput = userQuestion.value;
+  const answerInput = userAnswer.value;
+
+  flashCards.push({ question: questionInput, answer: answerInput });
+
+  currIndex++;
 
   updateCardUI();
+
+  userQuestion.value = "";
+  userAnswer.value = "";
+
+  // add condition if the input field is empty, throw an error
 });
