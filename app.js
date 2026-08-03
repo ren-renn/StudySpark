@@ -41,35 +41,59 @@ const nextButton = document.querySelector("#next-btn");
 nextButton.addEventListener("click", () => {
   if (currIndex < flashCards.length - 1) {
     currIndex++;
-    updateCardUI();
   }
+
+  updateCardUI();
 });
 
 prevButton.addEventListener("click", () => {
   if (currIndex > 0) {
     currIndex--;
-    updateCardUI();
   }
+
+  updateCardUI();
 });
 
 const cardForm = document.querySelector("#card-form");
 const userQuestion = document.querySelector("#user-question");
 const userAnswer = document.querySelector("#user-answer");
 
-cardForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+cardForm.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-  const questionInput = userQuestion.value;
-  const answerInput = userAnswer.value;
+  const questionInput = userQuestion.value.trim();
+  const answerInput = userAnswer.value.trim();
+
+  let hasError = false;
+
+  if (questionInput === "") {
+    userQuestion.setCustomValidity("This field can't be empty!");
+
+    hasError = true;
+  } else {
+    userQuestion.setCustomValidity("");
+  }
+
+  if (answerInput === "") {
+    userAnswer.setCustomValidity("This field can't be empty!");
+
+    hasError = true;
+  } else {
+    userAnswer.setCustomValidity("");
+  }
+
+  if (hasError) {
+    userQuestion.reportValidity();
+    userAnswer.reportValidity();
+    return;
+  }
 
   flashCards.push({ question: questionInput, answer: answerInput });
-
-  currIndex++;
 
   updateCardUI();
 
   userQuestion.value = "";
   userAnswer.value = "";
 
-  // add condition if the input field is empty, throw an error
+  currIndex++;
 });
