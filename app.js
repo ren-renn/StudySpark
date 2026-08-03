@@ -41,17 +41,15 @@ const nextButton = document.querySelector("#next-btn");
 nextButton.addEventListener("click", () => {
   if (currIndex < flashCards.length - 1) {
     currIndex++;
+    updateCardUI();
   }
-
-  updateCardUI();
 });
 
 prevButton.addEventListener("click", () => {
   if (currIndex > 0) {
     currIndex--;
+    updateCardUI();
   }
-
-  updateCardUI();
 });
 
 const cardForm = document.querySelector("#card-form");
@@ -90,10 +88,10 @@ cardForm.addEventListener("submit", (e) => {
 
   flashCards.push({ question: questionInput, answer: answerInput });
 
+  currIndex = flashCards.length - 1;
+
   updateCardUI();
 
   userQuestion.value = "";
   userAnswer.value = "";
-
-  currIndex++;
 });
