@@ -1,4 +1,4 @@
-const flashCards = [
+const flashCards = JSON.parse(localStorage.getItem("flashCards")) || [
   {
     question: "What does HTML stand for?",
     answer: "HyperText Markup Language",
@@ -13,7 +13,11 @@ const flashCards = [
   },
 ];
 
-let currIndex = 0;
+let currIndex = Number(localStorage.getItem("flashCardsIndex")) || 0;
+
+if (currIndex >= flashCards.length) {
+  currIndex = 0;
+}
 
 function updateCardUI() {
   const questionText = document.querySelector("#question-text");
@@ -29,6 +33,13 @@ function updateCardUI() {
   }, 200);
 }
 
+document.querySelector("#question-text").textContent =
+  flashCards[currIndex].question;
+document.querySelector("#question-answer").textContent =
+  flashCards[currIndex].answer;
+document.querySelector("#progress").textContent =
+  `${currIndex + 1} of ${flashCards.length}`;
+
 const cardInner = document.querySelector("#card-inner");
 
 cardInner.addEventListener("click", () => {
@@ -41,6 +52,7 @@ const nextButton = document.querySelector("#next-btn");
 nextButton.addEventListener("click", () => {
   if (currIndex < flashCards.length - 1) {
     currIndex++;
+    localStorage.setItem("flashCardsIndex", currIndex);
     updateCardUI();
   }
 });
@@ -48,6 +60,7 @@ nextButton.addEventListener("click", () => {
 prevButton.addEventListener("click", () => {
   if (currIndex > 0) {
     currIndex--;
+    localStorage.setItem("flashCardsIndex", currIndex);
     updateCardUI();
   }
 });
@@ -90,8 +103,13 @@ cardForm.addEventListener("submit", (e) => {
 
   currIndex = flashCards.length - 1;
 
+  localStorage.setItem("flashCards", JSON.stringify(flashCards));
+  localStorage.setItem("flashCardsIndex", currIndex);
+
   updateCardUI();
 
   userQuestion.value = "";
   userAnswer.value = "";
 });
+
+updateCardUI();
