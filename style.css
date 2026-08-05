@@ -71,7 +71,8 @@ body {
 }
 
 #prev-btn,
-#next-btn {
+#next-btn,
+#delete-btn {
   padding: 15px;
   cursor: pointer;
   border-style: none;
@@ -84,13 +85,19 @@ body {
   margin-right: 7px;
 }
 
+#delete-btn {
+  margin-left: 7px;
+}
+
 #prev-btn:hover,
-#next-btn:hover {
+#next-btn:hover,
+#delete-btn:hover {
   background-color: rgb(174, 169, 169);
 }
 
 #prev-btn:active,
-#next-btn:active {
+#next-btn:active,
+#delete-btn:active {
   color: white;
   background-color: rgb(57, 47, 47);
   transition: none;
