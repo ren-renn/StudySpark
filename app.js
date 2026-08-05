@@ -26,19 +26,18 @@ function updateCardUI() {
 
   cardInner.classList.remove("is-flipped");
 
-  setTimeout(() => {
-    questionText.textContent = flashCards[currIndex].question;
-    questionAnswer.textContent = flashCards[currIndex].answer;
-    progress.textContent = `${currIndex + 1} of ${flashCards.length}`;
-  }, 200);
+  if (flashCards.length === 0) {
+    questionText.textContent = "No flashcards left!";
+    questionAnswer.textContent = "Please add flashcard first!";
+    progress.textContent = "0 of 0";
+  } else {
+    setTimeout(() => {
+      questionText.textContent = flashCards[currIndex].question;
+      questionAnswer.textContent = flashCards[currIndex].answer;
+      progress.textContent = `${currIndex + 1} of ${flashCards.length}`;
+    }, 200);
+  }
 }
-
-document.querySelector("#question-text").textContent =
-  flashCards[currIndex].question;
-document.querySelector("#question-answer").textContent =
-  flashCards[currIndex].answer;
-document.querySelector("#progress").textContent =
-  `${currIndex + 1} of ${flashCards.length}`;
 
 const cardInner = document.querySelector("#card-inner");
 
@@ -48,6 +47,7 @@ cardInner.addEventListener("click", () => {
 
 const prevButton = document.querySelector("#prev-btn");
 const nextButton = document.querySelector("#next-btn");
+const delButton = document.querySelector("#delete-btn");
 
 nextButton.addEventListener("click", () => {
   if (currIndex < flashCards.length - 1) {
@@ -64,6 +64,23 @@ prevButton.addEventListener("click", () => {
     updateCardUI();
   }
 });
+
+delButton.addEventListener("click", () => {
+  flashCards.splice(currIndex, 1);
+
+  if (currIndex >= flashCards.length) {
+    currIndex = flashCards.length - 1;
+  } else if (currIndex < 0) {
+    currIndex = 0;
+  }
+
+  localStorage.setItem("flashCardsIndex", currIndex);
+  localStorage.setItem("flashCards", JSON.stringify(flashCards));
+
+  updateCardUI();
+});
+
+updateCardUI();
 
 const cardForm = document.querySelector("#card-form");
 const userQuestion = document.querySelector("#user-question");
