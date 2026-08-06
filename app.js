@@ -19,11 +19,22 @@ if (currIndex >= flashCards.length) {
   currIndex = 0;
 }
 
-function updateCardUI() {
-  const questionText = document.querySelector("#question-text");
-  const questionAnswer = document.querySelector("#question-answer");
-  const progress = document.querySelector("#progress");
+let isEditing = false;
 
+const cardInner = document.querySelector("#card-inner");
+const questionText = document.querySelector("#question-text");
+const questionAnswer = document.querySelector("#question-answer");
+const progress = document.querySelector("#progress");
+const prevButton = document.querySelector("#prev-btn");
+const nextButton = document.querySelector("#next-btn");
+const delButton = document.querySelector("#delete-btn");
+const editButton = document.querySelector("#edit-btn");
+const cardForm = document.querySelector("#card-form");
+const userQuestion = document.querySelector("#user-question");
+const userAnswer = document.querySelector("#user-answer");
+const submitCardButton = document.querySelector("#submit-card");
+
+function updateCardUI() {
   cardInner.classList.remove("is-flipped");
 
   if (flashCards.length === 0) {
@@ -39,15 +50,9 @@ function updateCardUI() {
   }
 }
 
-const cardInner = document.querySelector("#card-inner");
-
 cardInner.addEventListener("click", () => {
   cardInner.classList.toggle("is-flipped");
 });
-
-const prevButton = document.querySelector("#prev-btn");
-const nextButton = document.querySelector("#next-btn");
-const delButton = document.querySelector("#delete-btn");
 
 nextButton.addEventListener("click", () => {
   if (currIndex < flashCards.length - 1) {
@@ -80,11 +85,15 @@ delButton.addEventListener("click", () => {
   updateCardUI();
 });
 
-updateCardUI();
-
-const cardForm = document.querySelector("#card-form");
-const userQuestion = document.querySelector("#user-question");
-const userAnswer = document.querySelector("#user-answer");
+editButton.addEventListener("click", () => {
+  if (flashCards.length > 0) {
+    userQuestion.value = flashCards[currIndex].question;
+    userAnswer.value = flashCards[currIndex].answer;
+    isEditing = true;
+    submitCardButton.textContent = "Save Changes";
+  }
+  updateCardUI();
+});
 
 cardForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -116,9 +125,14 @@ cardForm.addEventListener("submit", (e) => {
     return;
   }
 
-  flashCards.push({ question: questionInput, answer: answerInput });
-
-  currIndex = flashCards.length - 1;
+  if (isEditing) {
+    flashCards[currIndex] = { question: questionInput, answer: answerInput };
+    isEditing = false;
+    submitCardButton.textContent = "Add flashcard";
+  } else {
+    flashCards.push({ question: questionInput, answer: answerInput });
+    currIndex = flashCards.length - 1;
+  }
 
   localStorage.setItem("flashCards", JSON.stringify(flashCards));
   localStorage.setItem("flashCardsIndex", currIndex);
@@ -129,4 +143,5 @@ cardForm.addEventListener("submit", (e) => {
   userAnswer.value = "";
 });
 
+updateCardUI();
 updateCardUI();
