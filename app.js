@@ -33,6 +33,7 @@ const cardForm = document.querySelector("#card-form");
 const userQuestion = document.querySelector("#user-question");
 const userAnswer = document.querySelector("#user-answer");
 const submitCardButton = document.querySelector("#submit-card");
+const shuffleButton = document.querySelector("#shuffle-btn");
 
 function updateCardUI() {
   cardInner.classList.remove("is-flipped");
@@ -92,6 +93,21 @@ editButton.addEventListener("click", () => {
     isEditing = true;
     submitCardButton.textContent = "Save Changes";
   }
+
+  updateCardUI();
+});
+
+shuffleButton.addEventListener("click", () => {
+  for (let i = flashCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [flashCards[i], flashCards[j]] = [flashCards[j], flashCards[i]];
+  }
+
+  currIndex = 0;
+
+  localStorage.setItem("flashCards", JSON.stringify(flashCards));
+  localStorage.setItem("flashCardsIndex", currIndex);
+
   updateCardUI();
 });
 
@@ -143,5 +159,4 @@ cardForm.addEventListener("submit", (e) => {
   userAnswer.value = "";
 });
 
-updateCardUI();
 updateCardUI();
