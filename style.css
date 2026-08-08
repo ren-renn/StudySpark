@@ -89,6 +89,7 @@ h1 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 24px;
   position: absolute;
   backface-visibility: hidden;
   width: 100%;
