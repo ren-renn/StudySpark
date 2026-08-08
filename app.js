@@ -159,4 +159,19 @@ cardForm.addEventListener("submit", (e) => {
   userAnswer.value = "";
 });
 
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+    return;
+  }
+
+  if (e.code === "Space") {
+    e.preventDefault();
+    cardInner.click();
+  } else if (e.code === "ArrowRight") {
+    nextButton.click();
+  } else if (e.code === "ArrowLeft") {
+    prevButton.click();
+  }
+});
+
 updateCardUI();
