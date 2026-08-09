@@ -162,6 +162,17 @@ h1 {
   transform: scale(0.96);
 }
 
+.rating-btns {
+  display: none;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px;
+}
+
+.rating-btns.show {
+  display: flex;
+}
+
 .card-form-container {
   max-width: 360px;
   width: 100%;

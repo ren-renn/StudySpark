@@ -1,15 +1,25 @@
+const defaultSM2 = {
+  repetition: 0,
+  interval: 1,
+  easeFactor: 2.5,
+  nextReviewDate: new Date().toLocaleDateString("sv-SE"),
+};
+
 const flashCards = JSON.parse(localStorage.getItem("flashCards")) || [
   {
     question: "What does HTML stand for?",
     answer: "HyperText Markup Language",
+    ...defaultSM2,
   },
   {
     question: "What does CSS stand for?",
     answer: "Cascading Style Sheets",
+    ...defaultSM2,
   },
   {
     question: "What does JS stand for?",
     answer: "JavaScript",
+    ...defaultSM2,
   },
 ];
 
@@ -34,9 +44,46 @@ const userQuestion = document.querySelector("#user-question");
 const userAnswer = document.querySelector("#user-answer");
 const submitCardButton = document.querySelector("#submit-card");
 const shuffleButton = document.querySelector("#shuffle-btn");
+const ratingButtons = document.querySelector("#rating-btns");
+
+function calculateSM2(card, quality) {
+  let repetition = card.repetition || 0;
+  let interval = card.interval || 1;
+  let easeFactor = card.easeFactor || 2.5;
+
+  if (quality < 3) {
+    repetition = 0;
+    interval = 1;
+  } else {
+    if (repetition === 0) {
+      interval = 1;
+    } else if (repetition === 1) {
+      interval = 6;
+    } else {
+      interval = Math.round(interval * easeFactor);
+    }
+    repetition++;
+  }
+
+  easeFactor =
+    easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  if (easeFactor < 1.3) easeFactor = 1.3;
+
+  const nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + interval);
+
+  return {
+    ...card,
+    repetition,
+    interval,
+    easeFactor: Number(easeFactor.toFixed(2)),
+    nextReviewDate: nextDate.toLocaleDateString("sv-SE"),
+  };
+}
 
 function updateCardUI() {
   cardInner.classList.remove("is-flipped");
+  ratingButtons.classList.remove("show");
 
   if (flashCards.length === 0) {
     questionText.textContent = "No flashcards left!";
@@ -53,6 +100,12 @@ function updateCardUI() {
 
 cardInner.addEventListener("click", () => {
   cardInner.classList.toggle("is-flipped");
+
+  if (cardInner.classList.contains("is-flipped")) {
+    ratingButtons.classList.add("show");
+  } else {
+    ratingButtons.classList.remove("show");
+  }
 });
 
 nextButton.addEventListener("click", () => {
@@ -111,6 +164,27 @@ shuffleButton.addEventListener("click", () => {
   updateCardUI();
 });
 
+ratingButtons.addEventListener("click", (e) => {
+  const button = e.target.closest("button");
+  if (!button || flashCards.length === 0) return;
+
+  const quality = Number(button.dataset.quality);
+
+  const updatedCard = calculateSM2(flashCards[currIndex], quality);
+  flashCards[currIndex] = updatedCard;
+
+  localStorage.setItem("flashCards",JSON.stringify(flashCards));
+
+  if (currIndex < flashCards.length - 1) {
+    currIndex++;
+  } else {
+    currIndex = 0;
+  }
+
+  localStorage.setItem("flashCardsIndex", currIndex);
+  updateCardUI();
+});
+
 cardForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -142,11 +216,22 @@ cardForm.addEventListener("submit", (e) => {
   }
 
   if (isEditing) {
-    flashCards[currIndex] = { question: questionInput, answer: answerInput };
+    flashCards[currIndex] = {
+      ...flashCards[currIndex],
+      question: questionInput,
+      answer: answerInput,
+    };
     isEditing = false;
     submitCardButton.textContent = "Add flashcard";
   } else {
-    flashCards.push({ question: questionInput, answer: answerInput });
+    flashCards.push({
+      question: questionInput,
+      answer: answerInput,
+      repetition: 0,
+      interval: 1,
+      easeFactor: 2.5,
+      nextReviewDate: new Date().toLocaleDateString("sv-SE"),
+    });
     currIndex = flashCards.length - 1;
   }
 
