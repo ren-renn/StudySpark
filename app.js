@@ -81,21 +81,34 @@ function calculateSM2(card, quality) {
   };
 }
 
+function getDueCards() {
+  const today = new Date().toLocaleDateString("sv-SE");
+
+  return flashCards.filter((card) => card.nextReviewDate <= today);
+}
+
 function updateCardUI() {
   cardInner.classList.remove("is-flipped");
   ratingButtons.classList.remove("show");
 
-  if (flashCards.length === 0) {
-    questionText.textContent = "No flashcards left!";
-    questionAnswer.textContent = "Please add flashcard first!";
+  const dueCards = getDueCards();
+
+  if (dueCards.length === 0) {
+    questionText.textContent = "All caught up!";
+    questionAnswer.textContent = "No cards due for review today!";
     progress.textContent = "0 of 0";
-  } else {
-    setTimeout(() => {
-      questionText.textContent = flashCards[currIndex].question;
-      questionAnswer.textContent = flashCards[currIndex].answer;
-      progress.textContent = `${currIndex + 1} of ${flashCards.length}`;
-    }, 200);
+    return;
   }
+
+  if (currIndex >= dueCards.length) {
+    currIndex = 0;
+  }
+
+  setTimeout(() => {
+    questionText.textContent = dueCards[currIndex].question;
+    questionAnswer.textContent = dueCards[currIndex].answer;
+    progress.textContent = `${currIndex + 1} of ${dueCards.length}`;
+  }, 200);
 }
 
 cardInner.addEventListener("click", () => {
@@ -109,7 +122,9 @@ cardInner.addEventListener("click", () => {
 });
 
 nextButton.addEventListener("click", () => {
-  if (currIndex < flashCards.length - 1) {
+  const dueCards = getDueCards();
+
+  if (currIndex < dueCards.length - 1) {
     currIndex++;
     localStorage.setItem("flashCardsIndex", currIndex);
     updateCardUI();
@@ -125,12 +140,21 @@ prevButton.addEventListener("click", () => {
 });
 
 delButton.addEventListener("click", () => {
-  flashCards.splice(currIndex, 1);
+  const dueCards = getDueCards();
 
-  if (currIndex >= flashCards.length) {
-    currIndex = flashCards.length - 1;
-  } else if (currIndex < 0) {
-    currIndex = 0;
+  if (dueCards.length === 0) return;
+
+  const currentCard = dueCards[currIndex];
+  const mainIndex = flashCards.findIndex(
+    (c) => c.question === currentCard.question,
+  );
+
+  if (mainIndex !== -1) {
+    flashCards.splice(mainIndex, 1);
+  }
+
+  if (currIndex >= getDueCards().length) {
+    currIndex = Math.max(0, getDueCards().length - 1);
   }
 
   localStorage.setItem("flashCardsIndex", currIndex);
@@ -140,9 +164,11 @@ delButton.addEventListener("click", () => {
 });
 
 editButton.addEventListener("click", () => {
-  if (flashCards.length > 0) {
-    userQuestion.value = flashCards[currIndex].question;
-    userAnswer.value = flashCards[currIndex].answer;
+  const dueCards = getDueCards();
+
+  if (dueCards.length > 0) {
+    userQuestion.value = dueCards[currIndex].question;
+    userAnswer.value = dueCards[currIndex].answer;
     isEditing = true;
     submitCardButton.textContent = "Save Changes";
   }
@@ -166,18 +192,28 @@ shuffleButton.addEventListener("click", () => {
 
 ratingButtons.addEventListener("click", (e) => {
   const button = e.target.closest("button");
-  if (!button || flashCards.length === 0) return;
+  const dueCards = getDueCards();
+
+  if (!button || dueCards.length === 0) return;
 
   const quality = Number(button.dataset.quality);
+  const currentCard = dueCards[currIndex];
 
-  const updatedCard = calculateSM2(flashCards[currIndex], quality);
-  flashCards[currIndex] = updatedCard;
+  const updatedCard = calculateSM2(currentCard, quality);
 
-  localStorage.setItem("flashCards",JSON.stringify(flashCards));
+  const mainIndex = flashCards.findIndex(
+    (c) => c.question === currentCard.question,
+  );
 
-  if (currIndex < flashCards.length - 1) {
-    currIndex++;
-  } else {
+  if (mainIndex !== -1) {
+    flashCards[mainIndex] = updatedCard;
+  }
+
+  localStorage.setItem("flashCards", JSON.stringify(flashCards));
+
+  const remainingDue = getDueCards();
+
+  if (currIndex >= remainingDue.length) {
     currIndex = 0;
   }
 
@@ -216,11 +252,19 @@ cardForm.addEventListener("submit", (e) => {
   }
 
   if (isEditing) {
-    flashCards[currIndex] = {
-      ...flashCards[currIndex],
-      question: questionInput,
-      answer: answerInput,
-    };
+    const dueCards = getDueCards();
+    const currentCard = dueCards[currIndex];
+    const mainIndex = flashCards.findIndex(
+      (c) => c.question === currentCard.question,
+    );
+
+    if (mainIndex !== -1) {
+      flashCards[mainIndex] = {
+        ...flashCards[mainIndex],
+        question: questionInput,
+        answer: answerInput,
+      };
+    }
     isEditing = false;
     submitCardButton.textContent = "Add flashcard";
   } else {
