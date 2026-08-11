@@ -62,5 +62,26 @@
         <button id="submit-card" type="submit">Add flashcard</button>
       </form>
     </div>
+
+    <section id="ai-generator">
+      <h3>Generate Cards with AI</h3>
+
+      <input
+        type="password"
+        id="api-key-input"
+        placeholder="Paste your API key here"
+      />
+
+      <textarea
+        id="ai-prompt-input"
+        placeholder="Enter a topic or paste study notes here"
+      ></textarea>
+
+      <button id="generate-btn">Generate Flashcards</button>
+
+      <p id="ai-loading-input" style="display: none">
+        Generating flashcards...
+      </p>
+    </section>
   </body>
 </html>
