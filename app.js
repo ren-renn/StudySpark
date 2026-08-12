@@ -7,16 +7,19 @@ const defaultSM2 = {
 
 const flashCards = JSON.parse(localStorage.getItem("flashCards")) || [
   {
+    id: 1,
     question: "What does HTML stand for?",
     answer: "HyperText Markup Language",
     ...defaultSM2,
   },
   {
+    id: 2,
     question: "What does CSS stand for?",
     answer: "Cascading Style Sheets",
     ...defaultSM2,
   },
   {
+    id: 3,
     question: "What does JS stand for?",
     answer: "JavaScript",
     ...defaultSM2,
@@ -45,6 +48,7 @@ const userAnswer = document.querySelector("#user-answer");
 const submitCardButton = document.querySelector("#submit-card");
 const shuffleButton = document.querySelector("#shuffle-btn");
 const ratingButtons = document.querySelector("#rating-btns");
+const generateBtn = document.querySelector("#generate-btn");
 
 function calculateSM2(card, quality) {
   let repetition = card.repetition || 0;
@@ -145,8 +149,8 @@ delButton.addEventListener("click", () => {
   if (dueCards.length === 0) return;
 
   const currentCard = dueCards[currIndex];
-  const mainIndex = flashCards.findIndex(
-    (c) => c.question === currentCard.question,
+  const mainIndex = flashCards.findIndex((c) =>
+    c.id ? c.id === currentCard.id : c.question === currentCard.question,
   );
 
   if (mainIndex !== -1) {
@@ -201,8 +205,8 @@ ratingButtons.addEventListener("click", (e) => {
 
   const updatedCard = calculateSM2(currentCard, quality);
 
-  const mainIndex = flashCards.findIndex(
-    (c) => c.question === currentCard.question,
+  const mainIndex = flashCards.findIndex((c) =>
+    c.id ? c.id === currentCard.id : c.question === currentCard.question,
   );
 
   if (mainIndex !== -1) {
@@ -219,6 +223,54 @@ ratingButtons.addEventListener("click", (e) => {
 
   localStorage.setItem("flashCardsIndex", currIndex);
   updateCardUI();
+});
+
+generateBtn.addEventListener("click", async () => {
+  const promptInput = document.querySelector("#ai-prompt-input");
+  const apiKeyInput = document.querySelector("#api-key-input");
+
+  const promptText = promptInput.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+
+  if (!promptText || !apiKey) {
+    alert("Please enter both an API key and a topic/notes!");
+    return;
+  }
+
+  generateBtn.disabled = true;
+  const originalTextBtn = generateBtn.textContent;
+  generateBtn.textContent = "Generating cards...";
+
+  try {
+    const newCards = await generateFlashcardsWithAI(promptText, apiKey);
+
+    const today = new Date().toLocaleDateString("sv-SE");
+
+    const formattedCards = newCards.map((card) => ({
+      ...card,
+      id: Date.now() + Math.random(),
+      repetition: 0,
+      interval: 1,
+      easeFactor: 2.5,
+      nextReviewDate: today,
+    }));
+
+    flashCards.push(...formattedCards);
+
+    localStorage.setItem("flashCards", JSON.stringify(flashCards));
+
+    updateCardUI();
+
+    promptInput.value = "";
+
+    alert(`Successfully added ${newCards.length} AI cards!`);
+  } catch (error) {
+    console.error(error);
+    alert("Failed to generate cards. Please check your API key and try again.");
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = originalTextBtn;
+  }
 });
 
 cardForm.addEventListener("submit", (e) => {
@@ -254,8 +306,8 @@ cardForm.addEventListener("submit", (e) => {
   if (isEditing) {
     const dueCards = getDueCards();
     const currentCard = dueCards[currIndex];
-    const mainIndex = flashCards.findIndex(
-      (c) => c.question === currentCard.question,
+    const mainIndex = flashCards.findIndex((c) =>
+      c.id ? c.id === currentCard.id : c.question === currentCard.question,
     );
 
     if (mainIndex !== -1) {
@@ -269,6 +321,7 @@ cardForm.addEventListener("submit", (e) => {
     submitCardButton.textContent = "Add flashcard";
   } else {
     flashCards.push({
+      id: Date.now() + Math.random(),
       question: questionInput,
       answer: answerInput,
       repetition: 0,
@@ -302,5 +355,34 @@ window.addEventListener("keydown", (e) => {
     prevButton.click();
   }
 });
+
+async function generateFlashcardsWithAI(userText, apiKey) {
+  const prompt = `
+    Generate 5 flashcards based on the following text or topic:
+    "${userText}"
+
+    Respond ONLY with a valid JSON array of objects. Do NOT wrap in markdown or backticks.
+    Format:
+    [
+      { "question": "Question text here", "answer": "Answer text here" }
+    ]
+  `;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    },
+  );
+
+  const data = await response.json();
+  const rawText = data.candidates[0].content.parts[0].text;
+
+  return JSON.parse(rawText.replace(/```json|```/g, "").trim());
+}
 
 updateCardUI();
